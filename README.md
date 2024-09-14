@@ -79,8 +79,6 @@ Sample Excel files are provided to test the app:
 - `transaction_metadata.xlsx`
 - `deal_metadata.xlsx`
 
-You can generate these files using the `generate_excel_files.py` script provided in the repository.
-
 ## Dependencies
 
 - **Python Packages**:
@@ -106,7 +104,6 @@ database-column-mapper/
 ├── requirements.txt         # List of required Python packages
 ├── transaction_metadata.xlsx  # Sample metadata Excel file for the transaction table
 ├── deal_metadata.xlsx         # Sample metadata Excel file for the deal table
-├── generate_excel_files.py    # Script to generate sample Excel files
 └── README.md                # Project documentation
 ```
 
