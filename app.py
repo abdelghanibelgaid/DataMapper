@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 def main():
-    st.title("Database Column Mapper")
+    st.title("DataMapper")
 
     st.write("""
     Upload two Excel files containing the metadata of your databases. Each file should have the following columns:
