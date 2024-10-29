@@ -2,7 +2,7 @@
 
 import streamlit as st
 import pandas as pd
-import openai  # Assumes openai package is installed
+import openai 
 
 def main():
     st.title("DataMapper with LLM")
@@ -49,8 +49,6 @@ def main():
         st.subheader("Generated Mapping Function")
         st.code(generate_mapping_function(column_mapping), language='python')
 
-import openai
-
 def map_columns_with_llm(df1, df2):
     # Initialize mapping dictionary
     column_mapping = {}
@@ -61,38 +59,44 @@ def map_columns_with_llm(df1, df2):
         column_1 = row1['Column Name']
 
         best_match_column = None
-        best_match_score = 0
+        best_match_score = 0.0  # Initialize as a float for similarity score comparison
 
         for index2, row2 in df2.iterrows():
             description_2 = row2['Description']
             column_2 = row2['Column Name']
 
-            # Use chat completion format for better compatibility with models
+            # Use chat completion format with a clear, explicit request
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # You can replace with "gpt-4" if available and supported
+                model="gpt-3.5-turbo",  # You can replace with "gpt-4" if available
                 messages=[
-                    {"role": "system", "content": "You are an expert at matching database column descriptions."},
-                    {"role": "user", "content": f"Match the following descriptions based on similarity:\n\n"
+                    {"role": "system", "content": "You are an assistant helping to match database column descriptions based on semantic similarity."},
+                    {"role": "user", "content": f"Rate the similarity between the following two descriptions from 0 to 1 (1 means highly similar, 0 means completely different):\n\n"
                                                  f"Description 1: {description_1}\n"
                                                  f"Description 2: {description_2}\n\n"
-                                                 f"On a scale from 0 to 1, where 1 means identical and 0 means completely different, "
-                                                 f"what is the similarity score between these two descriptions?"}
+                                                 f"Respond with only the similarity score as a decimal number."}
                 ],
-                max_tokens=5,
+                max_tokens=50,
                 temperature=0
             )
+            
+            # Attempt to extract a valid float score from the response
             try:
-                similarity_score = float(response['choices'][0]['message']['content'].strip())
-            except ValueError:
-                similarity_score = 0  # Default to zero if there's an issue parsing the response
+                response_text = response['choices'][0]['message']['content'].strip()
+                similarity_score = float(response_text)
+                
+                # Ensure the score is within the expected range (0 to 1)
+                if 0.0 <= similarity_score <= 1.0:
+                    # Update best match if similarity score is higher
+                    if similarity_score > best_match_score:
+                        best_match_score = similarity_score
+                        best_match_column = column_2
+            except (ValueError, KeyError):
+                # If parsing fails, we skip to the next pair without updating best match
+                continue
 
-            # Update best match if similarity score is higher
-            if similarity_score > best_match_score:
-                best_match_score = similarity_score
-                best_match_column = column_2
-
-        # Map columns based on best similarity score
-        column_mapping[column_1] = best_match_column
+        # Map columns based on the best similarity score found for the current column
+        if best_match_column:
+            column_mapping[column_1] = best_match_column
 
     return column_mapping
 
