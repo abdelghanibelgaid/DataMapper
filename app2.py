@@ -2,10 +2,19 @@
 
 import streamlit as st
 import pandas as pd
-import openai  # Assumes openai package is installed and API key is set
+import openai  # Assumes openai package is installed
 
 def main():
     st.title("DataMapper with LLM")
+
+    # Input for API key
+    api_key = st.text_input("Enter your OpenAI API Key:", type="password")
+    
+    if not api_key:
+        st.warning("Please enter your OpenAI API Key to proceed.")
+        return
+    
+    openai.api_key = api_key  # Set the API key for OpenAI client
 
     st.write("""
     Upload two Excel files containing the metadata of your databases. Each file should have the following columns:
