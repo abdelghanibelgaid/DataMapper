@@ -49,11 +49,13 @@ def main():
         st.subheader("Generated Mapping Function")
         st.code(generate_mapping_function(column_mapping), language='python')
 
+import openai
+
 def map_columns_with_llm(df1, df2):
     # Initialize mapping dictionary
     column_mapping = {}
 
-    # Iterate through each description in df1 and find best match in df2 using LLM
+    # Iterate through each description in df1 and find the best match in df2 using LLM
     for index1, row1 in df1.iterrows():
         description_1 = row1['Description']
         column_1 = row1['Column Name']
@@ -65,18 +67,24 @@ def map_columns_with_llm(df1, df2):
             description_2 = row2['Description']
             column_2 = row2['Column Name']
 
-            # Use LLM to determine similarity score between descriptions
-            response = openai.Completion.create(
-                model="gpt-4",
-                prompt=f"Match the following descriptions based on similarity:\n\n"
-                       f"Description 1: {description_1}\n"
-                       f"Description 2: {description_2}\n\n"
-                       f"On a scale from 0 to 1, where 1 means identical and 0 means completely different, "
-                       f"what is the similarity score between these two descriptions?",
+            # Use chat completion format for better compatibility with models
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",  # You can replace with "gpt-4" if available and supported
+                messages=[
+                    {"role": "system", "content": "You are an expert at matching database column descriptions."},
+                    {"role": "user", "content": f"Match the following descriptions based on similarity:\n\n"
+                                                 f"Description 1: {description_1}\n"
+                                                 f"Description 2: {description_2}\n\n"
+                                                 f"On a scale from 0 to 1, where 1 means identical and 0 means completely different, "
+                                                 f"what is the similarity score between these two descriptions?"}
+                ],
                 max_tokens=5,
                 temperature=0
             )
-            similarity_score = float(response.choices[0].text.strip())
+            try:
+                similarity_score = float(response['choices'][0]['message']['content'].strip())
+            except ValueError:
+                similarity_score = 0  # Default to zero if there's an issue parsing the response
 
             # Update best match if similarity score is higher
             if similarity_score > best_match_score:
