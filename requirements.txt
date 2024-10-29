@@ -4,3 +4,4 @@ scikit-learn
 openpyxl
 matplotlib
 seaborn
+openai==0.27.8
